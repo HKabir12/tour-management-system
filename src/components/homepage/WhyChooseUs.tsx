@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 import {
   Bus,
   Train,
@@ -24,10 +24,18 @@ const icons = {
   Globe: <Globe size={40} className="text-teal-500" />,
   Star: <Star size={40} className="text-pink-500" />,
   BedDouble: <BedDouble size={40} className="text-purple-500" />,
+} as const;
+
+type IconKey = keyof typeof icons;
+
+// --- Services Data (typed) ---
+type Service = {
+  iconName: IconKey;
+  title: string;
+  description?: string;
 };
 
-// --- Services Data ---
-const services = [
+const services: Service[] = [
   {
     iconName: "Bus",
     title: "Bus",
@@ -79,13 +87,18 @@ const container = {
   },
 };
 
-const item = {
+// Use an easing that matches Framer Motion's `Easing` type: a cubic-bezier array
+const item: Variants = {
   hidden: { opacity: 0, y: 40 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
+  },
 };
 
 // --- Component ---
-const WhyChooseUs = () => {
+const WhyChooseUs: React.FC = () => {
   return (
     <section className="w-full py-6 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4 sm:px-8">

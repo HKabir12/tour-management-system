@@ -6,7 +6,7 @@ import {
   Twitter,
   Instagram,
   Linkedin,
-  Sparkles,
+
   Bus,
   CreditCard,
   Globe,

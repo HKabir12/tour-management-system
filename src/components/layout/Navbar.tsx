@@ -14,7 +14,7 @@ import { ModeToggle } from "@/components/theme/theme-btn";
 import LoadingBar from "react-top-loading-bar";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Menu, X, Home, MapPin, Info, Phone, Package2Icon } from "lucide-react";
+import { Home, MapPin, Info, Phone, Package2Icon } from "lucide-react";
 const Navbar = () => {
   const [progress, setProgress] = useState(0);
   const pathname = usePathname();
