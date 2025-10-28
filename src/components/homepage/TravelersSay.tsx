@@ -1,54 +1,56 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import Image from "next/image";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
-// --- Testimonials Data ---
-const testimonials = [
-  {
-    text: "Amazing tour experience! Everything was organized perfectly and the destinations were breathtaking.",
-    name: "Rafiq Ahmed",
-    image: "https://i.ibb.co.com/CKZHz6JY/kabir-resume.jpg",
-  },
-  {
-    text: "Loved every moment. The booking process was super easy and customer service was excellent!",
-    name: "Sabrina Rahman",
-    image: "https://i.ibb.co.com/CKZHz6JY/kabir-resume.jpg",
-  },
-  {
-    text: "Highly recommend this service. Comfortable transport and trustworthy tours.",
-    name: "Karim Hossain",
-    image: "https://i.ibb.co.com/CKZHz6JY/kabir-resume.jpg",
-  },
-  {
-    text: "The guides were knowledgeable and friendly. It was a perfect blend of adventure and relaxation.",
-    name: "Aisha Khan",
-    image: "https://i.ibb.co.com/CKZHz6JY/kabir-resume.jpg",
-  },
-];
+interface Traveler {
+  _id: string;
+  name: string;
+  image: string;
+  review: string;
+  tourPlace: string;
+  tourDate: string;
+  fullDescription: string;
+}
 
-// --- Framer Motion Variants ---
-const container = {
+const container: Variants = {
   hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.3 },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.2 } },
 };
 
 const item: Variants = {
   hidden: { opacity: 0, y: 50 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
-// --- Component ---
-const TravelersSay = () => {
+export default function TravelersSay() {
+  const [travelers, setTravelers] = useState<Traveler[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTraveler, setSelectedTraveler] = useState<Traveler | null>(null);
+
+  useEffect(() => {
+    const fetchTravelers = async () => {
+      try {
+        const res = await fetch("/api/travelers");
+        const data = await res.json();
+        setTravelers(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTravelers();
+  }, []);
+
+  if (loading) return <p className="text-center mt-10">Loading travelers...</p>;
+
   return (
     <section className="w-full py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4 sm:px-8">
-        {/* Section Header */}
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 40 }}
@@ -60,12 +62,10 @@ const TravelersSay = () => {
             What Our <span className="text-blue-600">Travelers</span> Say
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Hear from our happy travelers who explored Bangladesh with us.
-            Their experiences inspire you to plan your next adventure confidently!
+            Hear from our happy travelers who explored Bangladesh with us. Their experiences inspire you to plan your next adventure confidently!
           </p>
         </motion.div>
 
-        {/* Testimonials Grid */}
         <motion.div
           variants={container}
           initial="hidden"
@@ -73,9 +73,12 @@ const TravelersSay = () => {
           viewport={{ once: true }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
         >
-          {testimonials.map((t, i) => (
-            <motion.div key={i} variants={item}>
-              <Card className="bg-white/90 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
+          {travelers.map((t) => (
+            <motion.div key={t._id} variants={item}>
+              <Card
+                className="bg-white/90 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer"
+                onClick={() => setSelectedTraveler(t)}
+              >
                 <CardHeader className="flex flex-col items-center pt-8 pb-4">
                   <Image
                     src={t.image}
@@ -86,21 +89,35 @@ const TravelersSay = () => {
                   />
                 </CardHeader>
                 <CardContent className="text-center px-6 pb-8">
-                  <p className="italic text-gray-600 dark:text-gray-300 mb-4">
-                    “{t.text}”
+                  <p className="italic text-gray-600 dark:text-gray-300 mb-2 line-clamp-3">
+                    “{t.review}”
                   </p>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {t.name}
                   </h3>
-                  <div className="mt-2 h-1 w-12 bg-blue-500 rounded-full mx-auto"></div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t.tourPlace} | {new Date(t.tourDate).toLocaleDateString()}
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </motion.div>
       </div>
+
+      {/* Modal */}
+      <Dialog open={!!selectedTraveler} onOpenChange={() => setSelectedTraveler(null)}>
+        <DialogContent className="max-w-lg rounded-3xl">
+          {selectedTraveler && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedTraveler.tourPlace}</DialogTitle>
+                <DialogDescription>{selectedTraveler.fullDescription}</DialogDescription>
+              </DialogHeader>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
-};
-
-export default TravelersSay;
+}
