@@ -26,3 +26,4 @@
   "include": ["next-env.d.ts","src/**/*", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/Providers/authProvider/NextAuthSessionProvider.js"],
   "exclude": ["node_modules"]
 }
+

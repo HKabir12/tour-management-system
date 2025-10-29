@@ -1,0 +1,31 @@
+@property --angle{
+    syntax: "<angle>";
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.container {
+    width: 310px;
+    height: 310px;
+    border-radius: 100%;
+    background-image: conic-gradient(from var(--angle),blue,green,yellow);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: 10s spin linear infinite;
+}
+
+.box {
+    height: 300px;
+    width: 300px;
+    border-radius: 100%;
+}
+
+@keyframes spin {
+    from{
+        --angle: 0deg;
+    }
+    to{
+        --angle: 360deg
+    }
+}

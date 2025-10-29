@@ -22,7 +22,7 @@ interface UserProfileDropdownProps {
 
 export default function UserProfileDropdown({ session }: UserProfileDropdownProps) {
   const router = useRouter();
-  const user = session.user;
+  const user = session?.user;
 
   const handleLogout = () => signOut({ callbackUrl: "/" });
 
@@ -30,8 +30,8 @@ export default function UserProfileDropdown({ session }: UserProfileDropdownProp
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar>
-          <AvatarImage src={user.image || "/default-avatar.png"} />
-          <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+          <AvatarImage src={user?.image || "/default-avatar.png"} />
+          <AvatarFallback>{user?.name?.[0] || "U"}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
 

@@ -3,12 +3,9 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    console.log("Connecting to DB...");
     const collection = await dbConnect("faqs");
-    console.log("Connected successfully!");
 
     const faqs = await collection.find({}).toArray();
-    console.log("FAQs loaded:", faqs.length);
 
     return NextResponse.json(faqs);
   } catch (error) {

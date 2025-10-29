@@ -1,24 +1,29 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 
-interface BookingDoc {
-  createdAt: Date;
-  packageName: string;
+interface BookingStats {
+  month: string;
+  count: number;
+}
+
+interface PackageStats {
+  name: string;
+  count: number;
 }
 
 interface Stats {
   totalBookings: number;
   totalUsers: number;
   totalPackages: number;
-  bookings: { month: string; count: number }[];
-  packages: { name: string; count: number }[];
+  bookings: BookingStats[];
+  packages: PackageStats[];
 }
 
-const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-export async function GET(req: NextRequest) {
+export async function GET(): Promise<NextResponse> {
   try {
-    // Await collections
+    // Connect to collections
     const bookingsCollection = await dbConnect("bookings");
     const usersCollection = await dbConnect("user");
     const packagesCollection = await dbConnect("tourPackages");
@@ -29,31 +34,44 @@ export async function GET(req: NextRequest) {
     const totalPackages = await packagesCollection.countDocuments();
 
     // Monthly bookings aggregation
-    const bookingsAgg = await bookingsCollection.aggregate([
-      { $group: { _id: { $month: "$createdAt" }, count: { $sum: 1 } } },
-      { $sort: { "_id": 1 } },
-    ]).toArray();
+    const bookingsAgg = await bookingsCollection
+      .aggregate<{ _id: number; count: number }>([
+        { $group: { _id: { $month: "$createdAt" }, count: { $sum: 1 } } },
+        { $sort: { "_id": 1 } },
+      ])
+      .toArray();
 
-    const bookings = bookingsAgg.map(b => ({
+    const bookings: BookingStats[] = bookingsAgg.map((b) => ({
       month: months[b._id - 1],
-      count: b.count
+      count: b.count,
     }));
 
     // Package popularity aggregation
-    const packagesAgg = await bookingsCollection.aggregate([
-      { $group: { _id: "$packageName", count: { $sum: 1 } } }
-    ]).toArray();
+    const packagesAgg = await bookingsCollection
+      .aggregate<{ _id: string; count: number }>([
+        { $group: { _id: "$packageName", count: { $sum: 1 } } },
+      ])
+      .toArray();
 
-    const packages = packagesAgg.map(p => ({
+    const packages: PackageStats[] = packagesAgg.map((p) => ({
       name: p._id,
-      count: p.count
+      count: p.count,
     }));
 
-    const stats: Stats = { totalBookings, totalUsers, totalPackages, bookings, packages };
+    const stats: Stats = {
+      totalBookings,
+      totalUsers,
+      totalPackages,
+      bookings,
+      packages,
+    };
 
     return NextResponse.json(stats);
-  } catch (err) {
-    console.error("Failed to fetch stats:", err);
-    return NextResponse.json({ error: "Failed to fetch stats" }, { status: 500 });
+  } catch (error) {
+    console.error("Failed to fetch stats:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch stats" },
+      { status: 500 }
+    );
   }
 }

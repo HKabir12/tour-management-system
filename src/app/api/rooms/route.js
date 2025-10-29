@@ -9,7 +9,7 @@ export async function GET() {
 
     return new Response(JSON.stringify(rooms), { status: 200 });
   } catch (error) {
-    // console.error("Error fetching rooms:", error);
+    console.error("Error fetching rooms:", error);
     return new Response(JSON.stringify({ message: "Failed to fetch rooms" }), {
       status: 500,
     });

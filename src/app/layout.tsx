@@ -1,7 +1,7 @@
 import "./globals.css";
-import Navbar from "@/components/layout/Navbar";
+
 import { ThemeProvider } from "next-themes";
-import Footer from "@/components/layout/Footer";
+
 import NextAuthSessionProvider from "@/Providers/authProvider/NextAuthSessionProvider";
 import type { Metadata } from "next";
 import NavbarFooterWrapper from "@/Providers/authProvider/NavbarFooterWrapper";

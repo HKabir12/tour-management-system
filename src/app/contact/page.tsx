@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+
 import { motion } from "framer-motion";
-import { MapPin, Mail, Phone, Send } from "lucide-react";
+import { MapPin, Mail, Phone } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -10,33 +10,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+
 import { Separator } from "@/components/ui/separator";
 import ContactForm from "./components/ContactForm";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("✅ Thank you for reaching out! We’ll get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
-  };
-
   const fadeIn = (delay: number = 0) => ({
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0 },
@@ -46,13 +24,16 @@ export default function Contact() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans px-6 md:px-12 py-16">
       {/* Header Section */}
-      <motion.div {...fadeIn(0.1)} className="text-center max-w-3xl mx-auto mb-12">
+      <motion.div
+        {...fadeIn(0.1)}
+        className="text-center max-w-3xl mx-auto mb-12"
+      >
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
           Contact <span className="text-primary">Us</span>
         </h1>
         <p className="text-muted-foreground text-lg md:text-xl mt-4">
-          Have questions or need help planning your next adventure?  
-          Reach out — we’re here to make your journey seamless.
+          Have questions or need help planning your next adventure? Reach out —
+          we’re here to make your journey seamless.
         </p>
       </motion.div>
 
@@ -75,8 +56,7 @@ export default function Contact() {
               <div className="flex items-start space-x-3">
                 <MapPin className="text-primary w-5 h-5 mt-1 flex-shrink-0" />
                 <p className="text-sm text-muted-foreground">
-                  123 Tour Street, Traveler’s Square,  
-                  City of Adventure, 54321
+                  123 Tour Street, Traveler’s Square, City of Adventure, 54321
                 </p>
               </div>
               <div className="flex items-center space-x-3">
@@ -90,7 +70,9 @@ export default function Contact() {
               </div>
               <div className="flex items-center space-x-3">
                 <Phone className="text-primary w-5 h-5 flex-shrink-0" />
-                <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                <p className="text-sm text-muted-foreground">
+                  +1 (555) 123-4567
+                </p>
               </div>
             </CardContent>
           </Card>

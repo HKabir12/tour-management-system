@@ -37,7 +37,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const usersCollection = await dbConnect("users");
+        const usersCollection = await dbConnect("user");
         const user = await usersCollection.findOne({
           email: credentials.email,
         });
@@ -88,7 +88,7 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account }) {
       if (account) {
         try {
-          const usersCollection = await dbConnect("users");
+          const usersCollection = await dbConnect("user");
           //users
           const existingUser = await usersCollection.findOne({
             providerAccountId: account.providerAccountId,
@@ -121,18 +121,17 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, user }) {
       if (user) {
-        const u = user as ExtendedUser;
-        token.id = u.id; // ✅ fixed (was _id)
-        token.role = u.role;
-        token.name = u.name;
+        token.id = user.id;
+        token.role = user.role;
+        token.image = user.image;
       }
       return token;
     },
-
     async session({ session, token }) {
-      if (session.user) {
-        session.user._id = token.id as string;
+      if (token) {
+        session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.image = token.image as string;
       }
       return session;
     },

@@ -27,8 +27,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const collection = await dbConnect("users");
-
+    const collection = await dbConnect("user");
+    //users
     // ✅ Check if user already exists
     const existingUser = await collection.findOne({ email });
     if (existingUser) {
@@ -49,7 +49,8 @@ export async function POST(req: Request) {
       name,
       email,
       password: hashedPassword,
-      image: imageBase64, // store image as Base64 (or URL if using Cloudinary)
+      image: imageBase64,
+      role:"user", // store image as Base64 (or URL if using Cloudinary)
       createdAt: new Date(),
     };
 

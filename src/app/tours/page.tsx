@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 // import { Metadata } from "next";
 import ToursContent from "./components/ToursContent";
+import { Loader } from "@/components/utilities/Loader";
 
 
 // 👇 Optional, to prevent prerender issues
@@ -44,7 +45,7 @@ import ToursContent from "./components/ToursContent";
 // 🧭 Page Component
 export default function ToursPage() {
   return (
-    <Suspense fallback={<div className="text-center mt-10">Loading tours...</div>}>
+    <Suspense fallback={<div className="text-center mt-10"><Loader></Loader></div>}>
       <ToursContent />
     </Suspense>
   );
