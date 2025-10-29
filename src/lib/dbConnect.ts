@@ -1,35 +1,19 @@
 "use server";
 
-import {
-  MongoClient,
-  ServerApiVersion,
-  Db,
-  Collection,
-  Document,
-} from "mongodb";
+import { Collection, MongoClient, ServerApiVersion } from "mongodb";
 
-// Keep client in memory to avoid reconnecting on each request (important for Next.js hot reload)
 let client: MongoClient | null = null;
-let database: Db | null = null;
 
-/**
- * Connect to MongoDB and return a specific collection.
- * Automatically reuses existing connection for performance.
- */
-export async function dbConnect<T extends Document>(
-  collectionName: string
-): Promise<Collection<T>> {
-  if (!process.env.NEXT_PUBLIC_MONGODB_URI) {
-    throw new Error("❌ Missing environment variable: NEXT_PUBLIC_MONGODB_URI");
+async function dbConnect(collectionName: string): Promise<Collection> {
+  const uri = process.env.MONGODB_URL;
+  const dbName = process.env.DB_NAME;
+
+  if (!uri || !dbName) {
+    throw new Error("Missing MongoDB connection details in environment variables");
   }
 
-  if (!process.env.DB_NAME) {
-    throw new Error("❌ Missing environment variable: DB_NAME");
-  }
-
-  // Reuse existing connection if available
   if (!client) {
-    client = new MongoClient(process.env.NEXT_PUBLIC_MONGODB_URI, {
+    client = new MongoClient(uri, {
       serverApi: {
         version: ServerApiVersion.v1,
         strict: true,
@@ -37,13 +21,10 @@ export async function dbConnect<T extends Document>(
       },
       maxPoolSize: 10,
     });
-
     await client.connect();
-    database = client.db(process.env.DB_NAME);
-
-    console.log("✅ MongoDB connected successfully");
   }
 
-  // Return requested collection
-  return database!.collection<T>(collectionName);
+  return client.db(dbName).collection(collectionName);
 }
+
+export default dbConnect;

@@ -1,100 +1,91 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { ModeToggle } from "@/components/theme/theme-btn";
-import LoadingBar from "react-top-loading-bar";
-import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Home, MapPin, Info, Phone, Package2Icon } from "lucide-react";
-const Navbar = () => {
-  const [progress, setProgress] = useState(0);
+import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import LoadingBar from "react-top-loading-bar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ModeToggle } from "@/components/theme/theme-btn";
+
+
+// Replace with your logo
+import Logo from "@/assets/images/icon.png";
+import UserProfileDropdown from "../Auth/UserProfileDropdown";
+
+export default function Navbar() {
+  const { data: session } = useSession();
   const pathname = usePathname();
+  const [progress, setProgress] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+
+  const navLinks = [
+    { href: "/", label: "Home" },
+    { href: "/destinations", label: "Destinations" },
+    { href: "/tours", label: "Tour Packages" },
+    { href: "/contact", label: "Contct Us" },
+    { href: "/about", label: "About" },
+  ];
+
+  const isActive = (path: string) => pathname === path;
+
+  // Page loading animation
   useEffect(() => {
     setProgress(20);
     setTimeout(() => setProgress(40), 100);
     setTimeout(() => setProgress(100), 400);
   }, [pathname]);
 
-  useEffect(() => {
-    setTimeout(() => setProgress(0), 50);
-  }, []);
-
-  const navLinks = [
-    { name: "Home", href: "/", icon: <Home size={18} /> },
-    { name: "Destinations", href: "/destinations", icon: <MapPin size={18} /> },
-    { name: "Tour Package", href: "/tours", icon: <Package2Icon size={18} /> },
-    { name: "Contact", href: "/contact", icon: <Phone size={18} /> },
-    { name: "About", href: "/about", icon: <Info size={18} /> },
-  ];
-
-  const isActive = (path: string) => pathname === path;
-
   return (
     <nav className="bg-background/50 sticky top-0 backdrop-blur border-b z-10 sm:px-4 mx-auto">
-      <LoadingBar
-        color="#933ce6"
-        progress={progress}
-        onLoaderFinished={() => setProgress(0)}
-      />
-      <div className="container mx-auto flex justify-between items-center">
+      <LoadingBar color="#933ce6" progress={progress} onLoaderFinished={() => setProgress(0)} />
+
+      <div className="container mx-auto flex justify-between items-center py-2">
         {/* Logo */}
         <Link href="/">
-          <div className="flex items-center space-x-2  p-2 hover:bg-accent/20 transition duration-200 ease-in-out cursor-pointer overflow-hidden">
-            <Image
-              src="https://i.ibb.co.com/TMrScv8t/Screenshot-2025-09-27-074922.png"
-              alt="Logo"
-              width={40}
-              height={10}
-              className="rounded-full"
-            />
-            <div className="text-lg font-bold">SixTour</div>
+          <div className="flex items-center gap-2 cursor-pointer hover:bg-accent/20 p-2 rounded-full transition">
+            <Image src={Logo} alt="Logo" width={40} height={40} className="rounded-full" />
+            <span className="text-lg font-bold">Tour Management</span>
           </div>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-4 items-center">
+        <div className="hidden md:flex items-center gap-6">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`transition-transform duration-300 ${
+              className={`transition-transform duration-200 ${
                 isActive(link.href)
                   ? "font-semibold text-primary border-b-2 border-primary pb-1 scale-105"
                   : "hover:scale-105 hover:font-semibold text-foreground"
               }`}
             >
-              <div className="flex items-center gap-1 space-x-2">
-                {link.icon} {link.name}
-              </div>
+              {link.label}
             </Link>
           ))}
 
-          <p className="flex items-center">
-            <Button className="mx-1" variant="outline">
-              <Link href="/login">Login</Link>
-            </Button>
-            <Button className="mx-1" variant="outline" asChild>
-              <Link href="/signin">Sign Up</Link>
-            </Button>
-            <ModeToggle />
-          </p>
+          {session?.user ? (
+            <UserProfileDropdown session={session} />
+          ) : (
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button variant="outline">
+                <Link href="/register">Sign In</Link>
+              </Button>
+            </div>
+          )}
+
+          <ModeToggle />
         </div>
 
         {/* Mobile Menu */}
-        <div className="md:hidden  flex items-center">
-          <span className="mx-2">
-            <ModeToggle />
-          </span>
+        <div className="md:hidden flex items-center gap-2">
+          <ModeToggle />
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger>
               <svg
@@ -102,55 +93,43 @@ const Navbar = () => {
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16m-7 6h7"
-                ></path>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
               </svg>
             </SheetTrigger>
+
             <SheetContent side="right">
               <SheetHeader>
-                <SheetTitle className="font-bold my-4">SixTour</SheetTitle>
-                <SheetDescription>
-                  <div className="flex flex-col gap-6">
-                    {navLinks.map((link) => (
-                      <Link
-                        key={link.href}
-                        href={link.href}
-                        className={`${
-                          isActive(link.href)
-                            ? "text-primary font-semibold"
-                            : "text-foreground hover:text-primary"
-                        }`}
-                        onClick={() => setIsOpen(false)}
-                      >
-                        <div className="flex items-center">
-                          {link.icon} {link.name}
-                        </div>
-                      </Link>
-                    ))}
-                    <p>
-                      <Button className="mx-1 text-xs" variant="outline">
-                        <Link href="/login" onClick={() => setIsOpen(false)}>
-                          Login{" "}
-                        </Link>
+                <SheetTitle className="font-bold my-2">Tour Management</SheetTitle>
+                <div className="flex flex-col gap-4 mt-4">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={`${
+                        isActive(link.href)
+                          ? "text-primary font-semibold"
+                          : "text-foreground hover:text-primary"
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+
+                  {session?.user ? (
+                    <UserProfileDropdown session={session} />
+                  ) : (
+                    <div className="flex flex-col gap-2 mt-4">
+                      <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Link href="/login">Login</Link>
                       </Button>
-                      <Button
-                        className="mx-1 text-xs"
-                        variant="outline"
-                        asChild
-                      >
-                        <Link href="/signin" onClick={() => setIsOpen(false)}>
-                          Sign Up
-                        </Link>
+                      <Button variant="outline" onClick={() => setIsOpen(false)}>
+                        <Link href="/register">Sign Up</Link>
                       </Button>
-                    </p>
-                  </div>
-                </SheetDescription>
+                    </div>
+                  )}
+                </div>
               </SheetHeader>
             </SheetContent>
           </Sheet>
@@ -158,6 +137,4 @@ const Navbar = () => {
       </div>
     </nav>
   );
-};
-
-export default Navbar;
+}

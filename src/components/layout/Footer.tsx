@@ -15,7 +15,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import BackToTopButton from "../utilities/BackToTopButton";
-
+import Icon from "@/assets/images/icon.png"
 const Footer = () => {
   const [year, setYear] = useState<number | null>(null);
 
@@ -56,7 +56,7 @@ const Footer = () => {
           className="flex flex-col sm:flex-row items-center justify-center sm:justify-start space-x-0 sm:space-x-2 mb-8 text-center"
         >
           <Image
-            src="https://i.ibb.co.com/TMrScv8t/Screenshot-2025-09-27-074922.png"
+            src={Icon}
             alt="SixTour Logo"
             width={40}
             height={40}

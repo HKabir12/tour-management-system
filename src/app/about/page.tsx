@@ -10,51 +10,28 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { Loader } from "@/components/utilities/Loader";
+import ApplyForm from "./components/ApplyForm";
 
-const teamMembers = [
-  {
-    id: 1,
-    name: "Rafiul Aktar",
-    role: "Lead Tour Planner",
-    image: "https://placehold.co/150x150/06B6D4/ffffff?text=RA",
-  },
-  {
-    id: 2,
-    name: "Abul Kalam",
-    role: "Head of Operations",
-    image: "https://placehold.co/150x150/F59E0B/ffffff?text=AK",
-  },
-  {
-    id: 3,
-    name: "Humaon Kabir",
-    role: "Customer Relations Manager",
-    image: "https://placehold.co/150x150/8B5CF6/ffffff?text=HK",
-  },
-  {
-    id: 4,
-    name: "Khairul Islam",
-    role: "Customer Manager",
-    image: "https://placehold.co/150x150/10B981/ffffff?text=KI",
-  },
-  {
-    id: 5,
-    name: "Habib Khan",
-    role: "Customer Relations Manager",
-    image: "https://placehold.co/150x150/F97316/ffffff?text=HK",
-  },
-  {
-    id: 6,
-    name: "Abul Galib",
-    role: "Customer Manager",
-    image: "https://placehold.co/150x150/EF4444/ffffff?text=AG",
-  },
-];
+interface TeamMember {
+  _id: string;
+  name: string;
+  role: string;
+  image: string;
+}
 
 const fadeIn = (delay: number = 0) => ({
   initial: { opacity: 0, y: 30 },
@@ -63,14 +40,26 @@ const fadeIn = (delay: number = 0) => ({
 });
 
 export default function About() {
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/teamMembers")
+      .then((res) => res.json())
+      .then((data) => setTeam(data))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Loader></Loader>;
+
   return (
-    <div className="min-h-screen bg-background text-foreground px-6 md:px-12 py-16 font-sans">
+    <div className=" bg-background text-foreground px-6 md:px-12 py-6 font-sans">
       {/* Hero Section */}
       <motion.div
         {...fadeIn(0.1)}
         className="text-center space-y-6 max-w-3xl mx-auto"
       >
-        <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
           About <span className="text-primary">Tour Management System</span>
         </h1>
         <p className="text-muted-foreground text-lg md:text-xl leading-relaxed">
@@ -115,8 +104,8 @@ export default function About() {
               <Users className="text-purple-500 w-10 h-10 mb-2" />
               <CardTitle>Our Values</CardTitle>
               <CardDescription>
-                Integrity, excellence, and customer satisfaction guide everything
-                we do.
+                Integrity, excellence, and customer satisfaction guide
+                everything we do.
               </CardDescription>
             </CardHeader>
           </Card>
@@ -136,14 +125,14 @@ export default function About() {
       </motion.div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-        {teamMembers.map((member, i) => (
-          <motion.div key={member.id} {...fadeIn(0.1 * i)}>
+        {team.map((member, i) => (
+          <motion.div key={member._id} {...fadeIn(0.1 * i)}>
             <Card className="text-center bg-card/80 backdrop-blur border border-muted-foreground/10 hover:scale-[1.03] transition-transform duration-300 rounded-2xl shadow-md">
               <CardContent className="pt-6 pb-8">
                 <Image
                   src={member.image}
                   alt={member.name}
-                  width={24}
+                  width={100}
                   height={24}
                   className=" mx-auto rounded-full object-cover shadow-lg mb-4"
                 />
@@ -168,35 +157,7 @@ export default function About() {
           growing family.
         </p>
 
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button size="lg" className="flex items-center justify-center  gap-2">
-              <UserPlus className="w-5 h-5" /> Apply Now
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Join Our Team</DialogTitle>
-            </DialogHeader>
-            <form className="space-y-4 mt-4">
-              <div>
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="Enter your name" />
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input id="email" type="email" placeholder="your@email.com" />
-              </div>
-              <div>
-                <Label htmlFor="position">Preferred Role</Label>
-                <Input id="position" placeholder="e.g. Tour Guide, Manager" />
-              </div>
-              <Button type="submit" className="w-full">
-                <Mail className="w-4 h-4 mr-2" /> Submit Application
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+        <ApplyForm></ApplyForm>
       </motion.div>
     </div>
   );

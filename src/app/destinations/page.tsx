@@ -16,6 +16,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Loader } from "@/components/utilities/Loader";
 
 type DestinationType = "Beach" | "Hill" | "Forest" | "Heritage" | "All";
 
@@ -101,7 +102,7 @@ export default function DestinationsPage() {
     });
   }, [destinations, filter, search]);
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading) return <Loader></Loader>;
 
   return (
     <div className="container mx-auto px-4 py-10">

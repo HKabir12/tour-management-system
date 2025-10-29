@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
+import { Loader } from "@/components/utilities/Loader";
 
 interface Tour {
   _id: string;
@@ -66,11 +67,7 @@ export default function TourDetails() {
   }, [tourData]);
 
   if (loading || !tourData) {
-    return (
-      <div className="flex justify-center items-center h-screen text-lg text-muted-foreground">
-        Loading tour details...
-      </div>
-    );
+    return <Loader></Loader>;
   }
 
   return (

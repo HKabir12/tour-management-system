@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion, Variants } from "framer-motion";
 import {
   Bus,
@@ -13,8 +13,9 @@ import {
   BedDouble,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Loader } from "../utilities/Loader";
 
-// --- Icons with color ---
+// --- Icons mapping ---
 const icons = {
   Bus: <Bus size={40} className="text-blue-500" />,
   Train: <Train size={40} className="text-green-500" />,
@@ -26,81 +27,55 @@ const icons = {
   BedDouble: <BedDouble size={40} className="text-purple-500" />,
 } as const;
 
-type IconKey = keyof typeof icons;
+type IconName = keyof typeof icons;
 
-// --- Services Data (typed) ---
-type Service = {
-  iconName: IconKey;
+interface Service {
+  _id: string;
+  iconName: IconName;
   title: string;
-  description?: string;
-};
+  description: string;
+}
 
-const services: Service[] = [
-  {
-    iconName: "Bus",
-    title: "Bus",
-    description: "Comfortable bus tours across Bangladesh.",
-  },
-  {
-    iconName: "Train",
-    title: "Train",
-    description: "Enjoy scenic train journeys to famous destinations.",
-  },
-  {
-    iconName: "Rocket",
-    title: "Helicopter",
-    description: "Fast and aerial view of top tourist spots.",
-  },
-  {
-    iconName: "Ship",
-    title: "Launch/Boat",
-    description: "Relaxing boat rides on rivers and lakes.",
-  },
-  {
-    iconName: "CreditCard",
-    title: "Secure Payments",
-    description: "Your transactions are safe with our secure payment system.",
-  },
-  {
-    iconName: "Globe",
-    title: "Trusted",
-    description: "Trusted by thousands of travelers across Bangladesh.",
-  },
-  {
-    iconName: "Star",
-    title: "Reviews",
-    description: "Rated highly by our happy customers for excellent service.",
-  },
-  {
-    iconName: "BedDouble",
-    title: "Comfortable Stays",
-    description: "Enjoy comfortable stays with all necessary amenities.",
-  },
-];
-
-// --- Framer Motion Variants ---
-const container = {
+// --- Framer Motion variants ---
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.2 },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.2 } },
 };
 
-// Use an easing that matches Framer Motion's `Easing` type: a cubic-bezier array
-const item: Variants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 40 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-  },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
 };
 
 // --- Component ---
 const WhyChooseUs: React.FC = () => {
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await fetch("/api/services");
+        if (!res.ok) throw new Error("Failed to fetch services");
+
+        const data: Service[] = await res.json();
+        setServices(data);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
+
+  if (loading) return <Loader />;
+  if (error) return <p className="text-center text-red-500 mt-4">{error}</p>;
+
   return (
-    <section className="w-full py-6 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
+    <section className="w-full py-8 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
       <div className="container mx-auto px-4 sm:px-8">
         {/* Header */}
         <motion.div
@@ -114,27 +89,27 @@ const WhyChooseUs: React.FC = () => {
             Why Choose <span className="text-blue-600">SixTour</span>
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            We provide the best travel experience with comfort, safety, and
-            satisfaction. Here’s why travelers love us:
+            We provide the best travel experience with comfort, safety, and satisfaction. 
+            Here’s why travelers love us:
           </p>
         </motion.div>
 
         {/* Services Grid */}
         <motion.div
-          variants={container}
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+          variants={containerVariants}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
         >
-          {services.map((service, index) => (
-            <motion.div key={index} variants={item}>
+          {services.map((service) => (
+            <motion.div key={service._id} variants={itemVariants}>
               <Card className="group bg-white/90 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
-                <CardHeader className="flex flex-col items-center justify-center space-y-4 py-6">
-                  <div className="p-4 rounded-full bg-gradient-to-tr from-blue-100 to-blue-50 dark:from-gray-700 dark:to-gray-800 group-hover:scale-110 transform transition">
+                <CardHeader className="flex flex-col items-center justify-center py-4">
+                  <div className="p-2 rounded-full bg-gradient-to-tr from-blue-100 to-blue-50 dark:from-gray-700 dark:to-gray-800 group-hover:scale-110 transform transition">
                     {icons[service.iconName]}
                   </div>
-                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100 mt-2">
                     {service.title}
                   </CardTitle>
                 </CardHeader>

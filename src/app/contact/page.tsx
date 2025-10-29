@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import ContactForm from "./components/ContactForm";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -59,72 +60,7 @@ export default function Contact() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-6xl mx-auto">
         {/* Contact Form */}
-        <motion.div {...fadeIn(0.2)}>
-          <Card className="border border-muted-foreground/20 bg-card/80 backdrop-blur shadow-md hover:shadow-lg transition-shadow duration-300 rounded-3xl">
-            <CardHeader>
-              <CardTitle className="text-2xl">Send Us a Message</CardTitle>
-              <CardDescription>
-                We’d love to hear from you! Fill out the form below.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    placeholder="Enter your full name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    placeholder="Enter a subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    placeholder="Write your message..."
-                    value={formData.message}
-                    onChange={handleChange}
-                    rows={4}
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full flex items-center justify-center gap-2"
-                >
-                  <Send className="w-4 h-4" /> Send Message
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <ContactForm></ContactForm>
 
         {/* Contact Info & Map */}
         <motion.div {...fadeIn(0.4)} className="space-y-8">

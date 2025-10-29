@@ -1,4 +1,5 @@
-import { dbConnect } from "@/lib/dbConnect";
+
+import dbConnect from "@/lib/dbConnect";
 import { NextResponse } from "next/server";
 
 export async function GET() {
@@ -6,7 +7,8 @@ export async function GET() {
     const collection = await dbConnect("travelers");
     const data = await collection.find({}).toArray();
     return NextResponse.json(data);
-  } catch (err) {
+  } catch (error) {
+    console.log(error);
     return NextResponse.json(
       { error: "Failed to fetch travelers" },
       { status: 500 }

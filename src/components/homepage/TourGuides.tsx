@@ -2,48 +2,49 @@
 
 import { motion } from "framer-motion";
 import Image from "next/image";
+import React, { useEffect, useState } from "react";
+import { Loader } from "../utilities/Loader";
 
-const guides = [
-  {
-    name: "Abdul Karim",
-    role: "Senior Tour Guide",
-    experience: "8 Years Experience",
-    image: "https://i.ibb.co.com/CKZHz6JY/kabir-resume.jpg",
-    bio: "Expert in cultural and historical tours across Bangladesh. Known for making every journey educational and fun.",
-  },
-  {
-    name: "Nusrat Jahan",
-    role: "Adventure Specialist",
-    experience: "5 Years Experience",
-    image: "https://i.ibb.co.com/ycRntQYN/mahbubvai.jpg",
-    bio: "Loves mountain trails and eco-tourism. Passionate about creating unforgettable adventure experiences.",
-  },
-  {
-    name: "Rafiul Islam",
-    role: "Travel Planner",
-    experience: "6 Years Experience",
-    image: "https://i.ibb.co.com/Myr1KHgt/IMG-20250518-211002.jpg",
-    bio: "Ensures every trip runs smoothly from start to finish. Expert in managing group and private tours.",
-  },
-  {
-    name: "Shamima Akter",
-    role: "Local Experience Guide",
-    experience: "4 Years Experience",
-    image: "https://i.ibb.co.com/fYcbLX4H/zabir.jpg",
-    bio: "Specializes in showcasing authentic local life and cuisine. Tourists love her storytelling and hospitality.",
-  },
-];
+interface Guide {
+  _id: string;
+  name: string;
+  role: string;
+  experience: string;
+  image: string;
+  bio: string;
+}
 
 export default function TourGuides() {
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchGuides = async () => {
+      try {
+        const res = await fetch("/api/guides");
+        const data: Guide[] = await res.json();
+        setGuides(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGuides();
+  }, []);
+
+  if (loading) return <Loader></Loader>;
   return (
-    <section className="bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950 py-16  sm:px-4 lg:px-6">
+    <section className=" py-6  sm:px-4 lg:px-6">
       {/* Section Header */}
       <div className="text-center mb-12">
         <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-gray-100">
           Meet Our Expert Tour Guides
         </h2>
         <p className="mt-4 text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Our professional guides are passionate about travel and committed to giving you the best experience possible.
+          Our professional guides are passionate about travel and committed to
+          giving you the best experience possible.
         </p>
       </div>
 
