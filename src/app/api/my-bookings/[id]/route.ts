@@ -1,21 +1,14 @@
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import dbConnect from "@/lib/dbConnect";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
 
-// ✅ PATCH → Approve / Reject booking
 export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     const bookings = await dbConnect("bookings");
-    const { status } = await req.json(); // expected: "approved" | "rejected"
-
-    if (!["approved", "rejected", "pending"].includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
-    }
+    const { status } = await req.json(); // status = "approved" বা "paid"
 
     const result = await bookings.updateOne(
       { _id: new ObjectId(params.id) },
@@ -33,7 +26,9 @@ export async function PATCH(
   }
 }
 
-// ✅ DELETE → Delete rejected booking (Admin only)
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
+
 export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
@@ -55,38 +50,37 @@ export async function DELETE(
       );
     }
 
+    // Find the booking first
     const booking = await db.findOne({ _id: new ObjectId(bookingId) });
 
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // ✅ Only allow delete if rejected
-    if (booking.status !== "rejected") {
+    if (booking.userEmail !== session.user.email) {
       return NextResponse.json(
-        { error: "Only rejected bookings can be deleted" },
+        { error: "You cannot cancel this booking" },
         { status: 403 }
       );
     }
 
-     //Optional: restrict delete to admin (if you store role)
-    if (session.user.role !== "moderator") {
+    if (booking.paymentStatus === "paid") {
       return NextResponse.json(
-        { error: "Only admin can delete bookings" },
-        { status: 403 }
+        { error: "Cannot cancel a paid booking" },
+        { status: 400 }
       );
     }
 
     await db.deleteOne({ _id: new ObjectId(bookingId) });
 
     return NextResponse.json(
-      { message: "Rejected booking deleted successfully" },
+      { message: "Booking cancelled successfully" },
       { status: 200 }
     );
   } catch (err) {
-    console.error("Delete error:", err);
+    console.error(err);
     return NextResponse.json(
-      { error: "Failed to delete booking" },
+      { error: "Failed to cancel booking" },
       { status: 500 }
     );
   }

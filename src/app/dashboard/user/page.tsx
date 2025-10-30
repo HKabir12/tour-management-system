@@ -39,7 +39,7 @@ const UserDashboard: React.FC = () => {
     const fetchBookings = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/bookings?email=${session.user.email}`);
+        const res = await fetch(`/api/my-bookings?email=${session.user.email}`);
         if (!res.ok) throw new Error("Failed to fetch bookings");
         const data: Booking[] = await res.json();
 
@@ -72,13 +72,22 @@ const UserDashboard: React.FC = () => {
   const BookingBadge: React.FC<{ status: string }> = ({ status }) => {
     const base = "px-2 py-1 rounded text-sm font-semibold";
     if (status === "paid")
-      return <span className={`${base} bg-green-200 text-green-800`}>PAID</span>;
+      return (
+        <span className={`${base} bg-green-200 text-green-800`}>PAID</span>
+      );
     if (status === "pending")
-      return <span className={`${base} bg-yellow-200 text-yellow-800`}>PENDING</span>;
-    return <span className={`${base} bg-red-200 text-red-800`}>{status.toUpperCase()}</span>;
+      return (
+        <span className={`${base} bg-yellow-200 text-yellow-800`}>PENDING</span>
+      );
+    return (
+      <span className={`${base} bg-red-200 text-red-800`}>
+        {status.toUpperCase()}
+      </span>
+    );
   };
 
-  if (loading) return <p className="text-center mt-8">Loading your dashboard...</p>;
+  if (loading)
+    return <p className="text-center mt-8">Loading your dashboard...</p>;
 
   return (
     <div className="p-6 space-y-8">
@@ -89,8 +98,16 @@ const UserDashboard: React.FC = () => {
         </h1>
         <div className="flex flex-wrap gap-4">
           {[
-            { label: "Total Bookings", value: summary.total, color: "bg-blue-600" },
-            { label: "Upcoming", value: summary.upcoming, color: "bg-green-600" },
+            {
+              label: "Total Bookings",
+              value: summary.total,
+              color: "bg-blue-600",
+            },
+            {
+              label: "Upcoming",
+              value: summary.upcoming,
+              color: "bg-green-600",
+            },
             { label: "Past", value: summary.past, color: "bg-purple-600" },
             { label: "Paid", value: summary.paid, color: "bg-teal-600" },
             { label: "Unpaid", value: summary.unpaid, color: "bg-red-600" },
@@ -140,7 +157,9 @@ const UserDashboard: React.FC = () => {
                 className="p-4 border rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition flex justify-between items-center"
               >
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{b.name}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {b.name}
+                  </p>
                   <p className="text-gray-500 dark:text-gray-300 text-sm">
                     {new Date(b.date).toLocaleDateString()}
                   </p>
@@ -167,7 +186,9 @@ const UserDashboard: React.FC = () => {
                 className="p-4 border rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition flex justify-between items-center"
               >
                 <div>
-                  <p className="font-medium text-gray-900 dark:text-gray-100">{b.name}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">
+                    {b.name}
+                  </p>
                   <p className="text-gray-500 dark:text-gray-300 text-sm">
                     {new Date(b.date).toLocaleDateString()}
                   </p>

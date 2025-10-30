@@ -1,9 +1,7 @@
 import React from "react";
 
 const ModeratorDashboard = () => {
-  return <div>
-    
-  </div>;
+  return <div>moderator</div>;
 };
 
 export default ModeratorDashboard;

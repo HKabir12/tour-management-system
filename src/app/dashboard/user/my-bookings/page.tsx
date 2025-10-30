@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Loader } from "@/components/utilities/Loader";
 import jsPDF from "jspdf";
 import { CancelBookingButton } from "./components/CancelBookingButton";
+import { Info } from "lucide-react";
 
 interface Booking {
   _id: string;
@@ -34,7 +35,7 @@ const MyBookingsPage: React.FC = () => {
     const fetchBookings = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/bookings?email=${session.user.email}`);
+        const res = await fetch(`/api/my-bookings?email=${session.user.email}`);
         if (!res.ok) throw new Error("Failed to fetch bookings");
         const data: Booking[] = await res.json();
         setBookings(data || []);
@@ -107,9 +108,8 @@ const MyBookingsPage: React.FC = () => {
 
   // Cancel booking handler
   const handleCancel = async (bookingId: string) => {
-    
     try {
-      const res = await fetch(`/api/bookings/${bookingId}`, {
+      const res = await fetch(`/api/my-bookings/${bookingId}`, {
         method: "DELETE",
       });
 
@@ -127,6 +127,10 @@ const MyBookingsPage: React.FC = () => {
       console.error(err);
       toast.error("Failed to cancel booking");
     }
+  };
+
+  const handleViewTour = (tourId: string) => {
+    window.open(`/tours/${tourId}`, "_blank");
   };
 
   if (loading) return <Loader />;
@@ -161,6 +165,9 @@ const MyBookingsPage: React.FC = () => {
               </th>
               <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-200">
                 Cancel
+              </th>
+              <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 dark:text-gray-200">
+                Details
               </th>
             </tr>
           </thead>
@@ -231,6 +238,14 @@ const MyBookingsPage: React.FC = () => {
                     disabled={b.paymentStatus === "paid"}
                     onConfirm={handleCancel}
                   />
+                </td>
+                <td>
+                  <button
+                    onClick={() => handleViewTour(b.tourId)}
+                    className="bg-blue-600 text-white px-2 py-1 rounded-lg text-xs md:text-sm flex items-center gap-1"
+                  >
+                    <Info size={14} /> Details
+                  </button>
                 </td>
               </tr>
             ))}

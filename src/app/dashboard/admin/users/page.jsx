@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Users, Shield, User, Trash2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
+import { Loader } from "@/components/utilities/Loader";
 
 // Role Badge Component
 const RoleBadge = ({ role }) => {
@@ -94,10 +95,7 @@ export default function UsersPage() {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <Loader2 className="animate-spin text-blue-600 h-8 w-8" />
-        <p className="ml-3 text-lg text-gray-700 dark:text-gray-300">Fetching users...</p>
-      </div>
+      <Loader></Loader>
     );
 
   return (

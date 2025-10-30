@@ -25,6 +25,7 @@ export default function Navbar() {
     { href: "/", label: "Home" },
     { href: "/destinations", label: "Destinations" },
     { href: "/tours", label: "Tour Packages" },
+    { href: "/smart-budget", label: "Smart Budget" },
     { href: "/contact", label: "Contct Us" },
     { href: "/about", label: "About" },
   ];
