@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import RoomCard from "./RoomCard";
-import LoadingSpinner from "@/app/register/components/LoadingSpinner";
+
 import Swal from "sweetalert2";
+import { Loader } from "../utilities/Loader";
 
 export default function RoomBookPage() {
   const [rooms, setRooms] = useState([]);
@@ -74,7 +75,7 @@ export default function RoomBookPage() {
     }
   };
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) return <Loader />;
 
   return (
     <section className="container mx-auto max-w-7xl py-6">

@@ -1,29 +1,11 @@
 "use client";
-import React, { useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
-import Swal from "sweetalert2";
-import { useRouter } from "next/navigation";
+
+import { signIn } from "next-auth/react";
 
 const SocialLogin = () => {
-  const { data } = useSession();
-  const router = useRouter();
-
   const handleSocialLogin = async (provider: string) => {
     await signIn(provider, { redirect: false });
   };
-
-  useEffect(() => {
-    if (data?.user) {
-      router.push("/");
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: `Welcome ${data.user.name}!`,
-        showConfirmButton: false,
-        timer: 1500,
-      });
-    }
-  }, [data, router]);
 
   return (
     <div className="flex flex-col gap-3 mt-5">

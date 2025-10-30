@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import dbConnect from "@/lib/dbConnect";
 
@@ -7,10 +7,11 @@ import dbConnect from "@/lib/dbConnect";
  * @route PUT /api/users/[id]
  */
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+ req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+     const { id } = await context.params; 
     const body = await req.json();
     const { role } = body as { role?: string };
 
@@ -20,7 +21,7 @@ export async function PUT(
 
     const users = await dbConnect("user");
     const result = await users.updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       { $set: { role } }
     );
 
@@ -40,12 +41,13 @@ export async function PUT(
  * @route DELETE /api/users/[id]
  */
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+     const { id } = await context.params; 
     const users = await dbConnect("user");
-    const result = await users.deleteOne({ _id: new ObjectId(params.id) });
+    const result = await users.deleteOne({ _id: new ObjectId(id) });
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });

@@ -41,21 +41,25 @@ interface Tour {
 export default function TourDetails() {
   const { data: session } = useSession();
   const { id } = useParams();
+ 
+
   const [tourData, setTourData] = useState<Tour | null>(null);
   const [division, setDivision] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [openModal, setOpenModal] = useState(false); // modal state
+  const [openModal, setOpenModal] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingStatus, setBookingStatus] = useState<
     "none" | "pending" | "approved" | "paid"
   >("none");
-  const [bookingId, setBookingId] = useState<string | null>(null);
-  // ✅ Fetch tour details
+
+  // Fetch tour details
   useEffect(() => {
+    if (!id) return;
+
     const fetchTour = async () => {
       try {
         const res = await fetch(`/api/tours/${id}`);
-        const data = await res.json();
+        const data: Tour = await res.json();
         setTourData(data);
       } catch (err) {
         console.error("Error fetching tour:", err);
@@ -63,10 +67,11 @@ export default function TourDetails() {
         setLoading(false);
       }
     };
-    if (id) fetchTour();
-  }, [session, id]);
 
-  // ✅ Fetch division name
+    fetchTour();
+  }, [id]);
+
+
   useEffect(() => {
     if (!tourData?.division) return;
 
@@ -89,22 +94,54 @@ export default function TourDetails() {
     fetchDivision();
   }, [tourData]);
 
-  // ✅ Booking request
+  // Poll booking status
+  useEffect(() => {
+    if (!session?.user?.email || !tourData?._id) return;
+
+    const fetchBookingStatus = async () => {
+      try {
+        const res = await fetch(
+          `/api/bookings?tourId=${tourData._id}&email=${session.user.email}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+
+        if (data.booking) {
+          setBookingStatus(data.booking.status);
+        } else {
+          setBookingStatus("none");
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchBookingStatus(); // check immediately
+    const interval = setInterval(fetchBookingStatus, 2000);
+
+    return () => clearInterval(interval);
+  }, [session, tourData]);
+
+  // Handle booking
   const handleBooking = async () => {
     if (!tourData?._id) return;
+
     if (!session) {
       signIn();
       return;
     }
+
     try {
       setBookingLoading(true);
+
       const body = {
-      tourId: tourData._id,
-      title: tourData.title,
-      costFrom: tourData.costFrom,
-      maxGuest: tourData.maxGuest,
-    };
-      const res = await fetch(`/api/bookings`, {
+        tourId: tourData._id,
+        title: tourData.title,
+        costFrom: tourData.costFrom,
+        maxGuest: tourData.maxGuest,
+      };
+
+      const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -112,49 +149,22 @@ export default function TourDetails() {
       });
 
       if (res.ok) {
-        const result = await res.json();
-        setBookingStatus("pending"); // ✅ Immediately update state
-        setBookingId(result.bookingId);
-        toast.success("Booking confirmed! We are working on your request.");
+        setBookingStatus("pending");
+        toast.success("Booking confirmed! Awaiting moderator approval.");
         setOpenModal(false);
       } else {
         const error = await res.json();
         toast.error(error?.error || "Booking failed. Try again.");
       }
-    } catch (error) {
-      console.error("Booking error:", error);
+    } catch (err) {
+      console.error("Booking error:", err);
       toast.error("Booking failed. Try again.");
     } finally {
       setBookingLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (!session?.user?.email || !tourData?._id) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(
-          `/api/bookings?tourId=${tourData._id}&email=${session.user.email}`
-        );
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.booking) {
-          setBookingStatus(data.booking.status);
-          setBookingId(data.booking._id);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }, 2000); 
-
-    return () => clearInterval(interval);
-  }, [session, tourData]);
-
- 
-  if (loading || !tourData) {
-    return <Loader></Loader>;
-  }
+  if (loading || !tourData) return <Loader />;
 
   return (
     <div className="container mx-auto p-6">
@@ -170,12 +180,14 @@ export default function TourDetails() {
         </div>
         <Button
           onClick={() => setOpenModal(true)}
-          disabled={bookingStatus === "pending" || bookingStatus === "paid"}
+          disabled={bookingStatus !== "none" && bookingStatus !== "approved"}
           className={`${
             bookingStatus === "pending"
               ? "bg-yellow-500 cursor-not-allowed"
               : bookingStatus === "paid"
               ? "bg-green-500 cursor-not-allowed"
+              : bookingStatus !== "none"
+              ? "bg-gray-400 cursor-not-allowed"
               : ""
           }`}
         >
@@ -185,19 +197,19 @@ export default function TourDetails() {
             ? "Pay Now"
             : bookingStatus === "paid"
             ? "Paid ✅"
+            : bookingStatus !== "none"
+            ? "Already Booked"
             : "Book Now"}
         </Button>
-
-        
       </div>
 
       {/* Images */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {tourData.images?.map((image, index) => (
+        {tourData.images?.map((image, idx) => (
           <Image
-            key={index}
+            key={idx}
             src={image}
-            alt={`${tourData.title} ${index + 1}`}
+            alt={`${tourData.title} ${idx + 1}`}
             width={500}
             height={300}
             className="w-full h-48 object-cover rounded-lg"
@@ -232,7 +244,6 @@ export default function TourDetails() {
             </p>
           </div>
         </div>
-
         <div>
           <h2 className="text-xl font-semibold mb-4">Description</h2>
           <p className="text-muted-foreground">{tourData.description}</p>
@@ -287,6 +298,7 @@ export default function TourDetails() {
           ))}
         </ol>
       </div>
+
       <Dialog open={openModal} onOpenChange={setOpenModal}>
         <DialogContent>
           <DialogHeader>

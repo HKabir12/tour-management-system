@@ -63,7 +63,7 @@ const userLinks = [
   { label: "My Bookings", href: "/dashboard/user/my-bookings", icon: Home },
   {
     label: "Communication",
-    href: "/dashboard/user/communication",
+    href: "/dashboard/user/chat",
     icon: ClipboardCheck,
   },
   { label: "Wishlist", href: "/dashboard/user/wishlist", icon: BarChart3 },

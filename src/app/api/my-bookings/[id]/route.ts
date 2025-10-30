@@ -1,17 +1,20 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import dbConnect from "@/lib/dbConnect";
 
+
 export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> } // ✅ Promise
 ) {
   try {
+    const { id } = await context.params; // ✅ await করতে হবে
     const bookings = await dbConnect("bookings");
+
     const { status } = await req.json(); // status = "approved" বা "paid"
 
     const result = await bookings.updateOne(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       { $set: { status } }
     );
 
@@ -26,62 +29,35 @@ export async function PATCH(
   }
 }
 
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+
 
 export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> } // ✅ Promise
 ) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
-    const db = await dbConnect("bookings");
-    const bookingId = params.id;
+    const { id } = await context.params; // ✅ await করা লাগবে
+    const bookings = await dbConnect("bookings");
 
-    if (!bookingId) {
-      return NextResponse.json(
-        { error: "Booking ID missing" },
-        { status: 400 }
-      );
-    }
-
-    // Find the booking first
-    const booking = await db.findOne({ _id: new ObjectId(bookingId) });
+    const booking = await bookings.findOne({ _id: new ObjectId(id) });
 
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    if (booking.userEmail !== session.user.email) {
+    // Optional: যদি শুধু rejected bookings মুছে দিতে চান
+    if (booking.status !== "rejected") {
       return NextResponse.json(
-        { error: "You cannot cancel this booking" },
+        { error: "Only rejected bookings can be deleted" },
         { status: 403 }
       );
     }
 
-    if (booking.paymentStatus === "paid") {
-      return NextResponse.json(
-        { error: "Cannot cancel a paid booking" },
-        { status: 400 }
-      );
-    }
+    await bookings.deleteOne({ _id: new ObjectId(id) });
 
-    await db.deleteOne({ _id: new ObjectId(bookingId) });
-
-    return NextResponse.json(
-      { message: "Booking cancelled successfully" },
-      { status: 200 }
-    );
+    return NextResponse.json({ message: "Booking deleted successfully" }, { status: 200 });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Failed to cancel booking" },
-      { status: 500 }
-    );
+    console.error("Delete booking error:", err);
+    return NextResponse.json({ error: "Failed to delete booking" }, { status: 500 });
   }
 }

@@ -1,93 +1,99 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
 import dbConnect from "@/lib/dbConnect";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 
-// ✅ PATCH → Approve / Reject booking
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+interface Booking {
+  _id: string;
+  tourId: string;
+  title: string;
+  costFrom: number;
+  maxGuest: number;
+  status: "pending" | "approved" | "rejected" | "paid";
+  sessionId?: string;
+  userEmail?: string;
+}
+
+// ✅ GET booking by ID
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   try {
-    const bookings = await dbConnect("bookings");
-    const { status } = await req.json(); // expected: "approved" | "rejected"
+    const { id } = await context.params;
+    const collection = await dbConnect("bookings");
+    const booking = await collection.findOne<Booking>({ _id: new ObjectId(id) });
 
-    if (!["approved", "rejected", "pending"].includes(status)) {
-      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
+    if (!booking) {
+      return NextResponse.json({ message: "Booking not found" }, { status: 404 });
     }
 
-    const result = await bookings.updateOne(
-      { _id: new ObjectId(params.id) },
-      { $set: { status } }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({ message: "Booking updated successfully" });
+    return NextResponse.json(booking, { status: 200 });
   } catch (error) {
-    console.error("Booking update error:", error);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    console.error("GET booking error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
 
-// ✅ DELETE → Delete rejected booking (Admin only)
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  const session = await getServerSession(authOptions);
-
-  if (!session || !session.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+// ✅ PATCH booking → update status
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
   try {
-    const db = await dbConnect("bookings");
-    const bookingId = params.id;
+    const { id } = await context.params;
+    const { status } = await req.json();
 
-    if (!bookingId) {
-      return NextResponse.json(
-        { error: "Booking ID missing" },
-        { status: 400 }
-      );
+    const collection = await dbConnect("bookings");
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { status } }
+    );
+
+    if (result.modifiedCount === 0) {
+      return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    const booking = await db.findOne({ _id: new ObjectId(bookingId) });
+    return NextResponse.json({ message: "Booking updated successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("PATCH booking error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  }
+}
 
+// ✅ DELETE booking → admin/moderator only, only if rejected
+export async function DELETE(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user?.role) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+    const collection = await dbConnect("bookings");
+
+    const booking = await collection.findOne<Booking>({ _id: new ObjectId(id) });
     if (!booking) {
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
-    // ✅ Only allow delete if rejected
     if (booking.status !== "rejected") {
-      return NextResponse.json(
-        { error: "Only rejected bookings can be deleted" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Only rejected bookings can be deleted" }, { status: 403 });
     }
 
-     //Optional: restrict delete to admin (if you store role)
+    // Only allow moderator/admin to delete
     if (session.user.role !== "moderator") {
-      return NextResponse.json(
-        { error: "Only admin can delete bookings" },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: "Only moderator can delete bookings" }, { status: 403 });
     }
 
-    await db.deleteOne({ _id: new ObjectId(bookingId) });
-
-    return NextResponse.json(
-      { message: "Rejected booking deleted successfully" },
-      { status: 200 }
-    );
-  } catch (err) {
-    console.error("Delete error:", err);
-    return NextResponse.json(
-      { error: "Failed to delete booking" },
-      { status: 500 }
-    );
+    await collection.deleteOne({ _id: new ObjectId(id) });
+    return NextResponse.json({ message: "Booking deleted successfully" }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE booking error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

@@ -125,6 +125,7 @@ export default function AllBookings() {
         setAlert({ message: `Booking ${status}`, type: "success" });
       } else throw new Error(data.error);
     } catch (err) {
+      console.log(err)
       setAlert({ message: "Update failed", type: "error" });
     } finally {
       setUpdatingId(null);
@@ -147,6 +148,7 @@ export default function AllBookings() {
         throw new Error(data.error || "Delete failed");
       }
     } catch (err) {
+      console.log(err)
       setAlert({ message: "Delete failed", type: "error" });
     }
   };

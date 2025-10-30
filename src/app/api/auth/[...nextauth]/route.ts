@@ -41,7 +41,7 @@ export const authOptions: NextAuthOptions = {
         const user = await usersCollection.findOne({
           email: credentials.email,
         });
-        console.log("Found user:", user);
+        //console.log("Found user:", user);
 
         if (!user) {
           console.log("❌ User not found");
@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        console.log("✅ Login success");
+       /// console.log("✅ Login success");
         return {
           id: user._id.toString(),
           name: user.name,

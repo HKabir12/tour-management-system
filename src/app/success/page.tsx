@@ -36,8 +36,8 @@ function SuccessContent() {
         if (res.ok) {
           setMessage("Payment confirmed! Your booking is now paid.");
           setTimeout(() => {
-            router.push("/dashboard/user/bookings");
-          }, 3000);
+            router.push("/dashboard/user/my-bookings");
+          }, 1000);
         } else {
           setMessage(data.error || "Payment verification failed. Please contact support.");
         }

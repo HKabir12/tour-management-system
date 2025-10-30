@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import toast from "react-hot-toast";
 
 interface FormState {
   name: string;
@@ -14,22 +16,20 @@ interface FormState {
 }
 
 const RegisterForm: React.FC = () => {
+  const router = useRouter();
   const [formData, setFormData] = useState<FormState>({
     name: "",
     email: "",
     password: "",
     image: null,
   });
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  // Handle text inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle file input
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     setFormData({ ...formData, image: file });
@@ -41,7 +41,6 @@ const RegisterForm: React.FC = () => {
     setMessage(null);
 
     try {
-      // Use FormData for file upload
       const form = new FormData();
       form.append("name", formData.name);
       form.append("email", formData.email);
@@ -50,25 +49,46 @@ const RegisterForm: React.FC = () => {
 
       const res = await fetch("/api/register", {
         method: "POST",
-        body: form, // no headers — FormData handles it
+        body: form,
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setMessage(data.message || "Registration failed");
-      } else {
-        setMessage("🎉 Registration successful!");
-        setFormData({
-          name: "",
-          email: "",
-          password: "",
-          image: null,
-        });
+        toast.error(data.error || "Registration failed");
+        return;
       }
+
+      // Registration successful
+      toast.success("🎉 Registration successful!");
+
+      // Auto-login
+      const login = await signIn("credentials", {
+        redirect: false, // prevent NextAuth redirect
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (login?.ok) {
+        toast.success("Logged in successfully!");
+        setTimeout(() => {
+          router.push("/dashboard/user"); // redirect after login
+        }, 1000);
+      } else {
+        toast.error("Auto-login failed. Please login manually.");
+        router.push("/login");
+      }
+
+      // Reset form
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        image: null,
+      });
     } catch (err) {
       console.error("Registration error:", err);
-      setMessage("Unexpected error occurred. Try again.");
+      toast.error("Unexpected error occurred. Try again.");
     } finally {
       setLoading(false);
     }

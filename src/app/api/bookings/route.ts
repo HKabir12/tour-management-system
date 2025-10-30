@@ -59,32 +59,6 @@ export async function POST(req: Request) {
   }
 }
 
-// export async function GET(req: Request) {
-//   const { searchParams } = new URL(req.url);
-//   const email = searchParams.get("email");
-
-//   if (!email) {
-//     return NextResponse.json({ error: "Missing email" }, { status: 400 });
-//   }
-
-//   try {
-//     const db = await dbConnect("bookings");
-
-//     // Fetch all bookings for this user, include all necessary tour info
-//     const bookings = await db.find({ userEmail: email }).toArray();
-
-//     // If you have tours collection, join additional info from there (title, costFrom, maxGuest)
-//     // For simplicity, assuming you saved them during booking
-//     return NextResponse.json(bookings, { status: 200 });
-//   } catch (err) {
-//     console.error(err);
-//     return NextResponse.json(
-//       { error: "Failed to fetch bookings" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 
 export async function GET() {
   try {

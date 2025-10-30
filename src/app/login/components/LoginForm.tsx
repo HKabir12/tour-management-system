@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+
 import SocialLogin from "./SocialLogin";
+import toast from "react-hot-toast";
 
 const LoginForm = () => {
   const [loading, setLoading] = useState(false);
@@ -18,25 +19,25 @@ const LoginForm = () => {
     const password = (form.elements.namedItem("password") as HTMLInputElement)
       .value;
 
-    const result = await signIn("credentials", { email, password, redirect: false });
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
 
     setLoading(false);
 
     if (result?.ok) {
-      Swal.fire({
-        position: "top-end",
-        icon: "success",
-        title: "Logged in successfully!",
-        showConfirmButton: false,
-        timer: 1200,
+      toast.success("Logged in successfully!", {
+        duration: 1200,
+        position: "top-right",
       });
+
       router.push("/");
     } else {
-      Swal.fire({
-        icon: "error",
-        title: "Oops...",
-        text: "Invalid email or password!",
-        confirmButtonText: "Try Again",
+      toast.error("Invalid email or password!", {
+        duration: 2000,
+        position: "top-right",
       });
     }
   };

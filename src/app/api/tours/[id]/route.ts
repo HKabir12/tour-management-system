@@ -25,38 +25,28 @@ export async function GET(
 }
 
 export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> } // ✅ Promise
 ) {
   try {
-    const users = await dbConnect("user"); // your collection name
-    const body = await req.json();
-    const { name } = body;
+    const { id } = await context.params; // ✅ await করুন
+    const tours = await dbConnect("tours");
 
-    if (!name) {
-      return NextResponse.json({ error: "Name is required" }, { status: 400 });
-    }
+    const data = await req.json();
+    const { title, description, costFrom } = data;
 
-    const userId = params.id;
-
-    // findOneAndUpdate may return null, so handle it
-    const result = await users.findOneAndUpdate(
-      { _id: new ObjectId(userId) },
-      { $set: { name } },
-      { returnDocument: "after" }
+    const result = await tours.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { title, description, costFrom } }
     );
 
-    if (!result || !result.value) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: "Tour not found" }, { status: 404 });
     }
 
-    // ✅ result.value is now guaranteed to exist here
-    return NextResponse.json(result.value, { status: 200 });
+    return NextResponse.json({ message: "Tour updated successfully" });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json(
-      { error: "Failed to update user" },
-      { status: 500 }
-    );
+    console.error("PUT tour error:", err);
+    return NextResponse.json({ error: "Failed to update tour" }, { status: 500 });
   }
 }
