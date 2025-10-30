@@ -59,7 +59,8 @@ const moderatorLinks = [
 ];
 
 const userLinks = [
-  { label: "My Bookings", href: "/dashboard/user/bookings", icon: Home },
+  { label: "Dashboard", href: "/dashboard/user", icon: LayoutDashboard },
+  { label: "My Bookings", href: "/dashboard/user/my-bookings", icon: Home },
   {
     label: "Communication",
     href: "/dashboard/user/communication",
@@ -84,7 +85,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       : userLinks;
 
   const handleLogout = () => signOut({ callbackUrl: "/" });
- const isActive =(href:string)=>pathname.startsWith(href);
+  const isActive = (href: string) => pathname.startsWith(href);
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="py-4">
@@ -109,8 +110,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <SidebarMenu>
               {links.map((link) => (
                 <SidebarMenuItem
-                 key={`${link.label}-${link.href}`}
-                  className={isActive(link.href) ? "bg-blue-100 dark:bg-blue-900 rounded-lg" : ""}
+                  key={`${link.label}-${link.href}`}
+                  className={
+                    isActive(link.href)
+                      ? "bg-blue-100 dark:bg-blue-900 rounded-lg"
+                      : ""
+                  }
                 >
                   <SidebarMenuButton asChild>
                     <Link href={link.href}>

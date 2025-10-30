@@ -3,10 +3,19 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { format } from "date-fns";
 import { Loader } from "@/components/utilities/Loader";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import toast from "react-hot-toast";
+import { signIn, useSession } from "next-auth/react";
 
 interface Tour {
   _id: string;
@@ -30,11 +39,17 @@ interface Tour {
 }
 
 export default function TourDetails() {
+  const { data: session } = useSession();
   const { id } = useParams();
   const [tourData, setTourData] = useState<Tour | null>(null);
   const [division, setDivision] = useState<string>("");
   const [loading, setLoading] = useState(true);
-
+  const [openModal, setOpenModal] = useState(false); // modal state
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingStatus, setBookingStatus] = useState<
+    "none" | "pending" | "approved" | "paid"
+  >("none");
+  const [bookingId, setBookingId] = useState<string | null>(null);
   // ✅ Fetch tour details
   useEffect(() => {
     const fetchTour = async () => {
@@ -49,23 +64,94 @@ export default function TourDetails() {
       }
     };
     if (id) fetchTour();
-  }, [id]);
+  }, [session, id]);
 
   // ✅ Fetch division name
   useEffect(() => {
     if (!tourData?.division) return;
+
     const fetchDivision = async () => {
       try {
         const res = await fetch(`/api/divisions/${tourData.division}`);
-        const data = await res.json();
-        setDivision(data?.name || "");
+        if (!res.ok) {
+          setDivision("Unknown Division");
+          return;
+        }
+
+        const data: { _id: string; name: string } = await res.json();
+        setDivision(data?.name || "Unknown Division");
       } catch (err) {
         console.error("Error fetching division:", err);
+        setDivision("Unknown Division");
       }
     };
+
     fetchDivision();
   }, [tourData]);
 
+  // ✅ Booking request
+  const handleBooking = async () => {
+    if (!tourData?._id) return;
+    if (!session) {
+      signIn();
+      return;
+    }
+    try {
+      setBookingLoading(true);
+      const body = {
+      tourId: tourData._id,
+      title: tourData.title,
+      costFrom: tourData.costFrom,
+      maxGuest: tourData.maxGuest,
+    };
+      const res = await fetch(`/api/bookings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        setBookingStatus("pending"); // ✅ Immediately update state
+        setBookingId(result.bookingId);
+        toast.success("Booking confirmed! We are working on your request.");
+        setOpenModal(false);
+      } else {
+        const error = await res.json();
+        toast.error(error?.error || "Booking failed. Try again.");
+      }
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error("Booking failed. Try again.");
+    } finally {
+      setBookingLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!session?.user?.email || !tourData?._id) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(
+          `/api/bookings?tourId=${tourData._id}&email=${session.user.email}`
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.booking) {
+          setBookingStatus(data.booking.status);
+          setBookingId(data.booking._id);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }, 2000); 
+
+    return () => clearInterval(interval);
+  }, [session, tourData]);
+
+ 
   if (loading || !tourData) {
     return <Loader></Loader>;
   }
@@ -82,9 +168,27 @@ export default function TourDetails() {
             <span>👥 Max {tourData.maxGuest} guests</span>
           </div>
         </div>
-        <Button asChild>
-          <Link href={`/booking/${tourData._id}`}>Book Now</Link>
+        <Button
+          onClick={() => setOpenModal(true)}
+          disabled={bookingStatus === "pending" || bookingStatus === "paid"}
+          className={`${
+            bookingStatus === "pending"
+              ? "bg-yellow-500 cursor-not-allowed"
+              : bookingStatus === "paid"
+              ? "bg-green-500 cursor-not-allowed"
+              : ""
+          }`}
+        >
+          {bookingStatus === "pending"
+            ? "Pending Approval"
+            : bookingStatus === "approved"
+            ? "Pay Now"
+            : bookingStatus === "paid"
+            ? "Paid ✅"
+            : "Book Now"}
         </Button>
+
+        
       </div>
 
       {/* Images */}
@@ -118,7 +222,7 @@ export default function TourDetails() {
               <strong>Arrival:</strong> {tourData.arrivalLocation}
             </p>
             <p>
-              <strong>Division:</strong> {division ||tourData.arrivalLocation }
+              <strong>Division:</strong> {division || tourData.arrivalLocation}
             </p>
             <p>
               <strong>Tour Type:</strong> {tourData.tourType}
@@ -183,6 +287,24 @@ export default function TourDetails() {
           ))}
         </ol>
       </div>
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you ready to book?</DialogTitle>
+            <DialogDescription>
+              Once confirmed, your booking will go for moderator approval.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="items-center justify-center flex">
+            <Button variant="outline" onClick={() => setOpenModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleBooking} disabled={bookingLoading}>
+              {bookingLoading ? "Processing..." : "Confirm Booking"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

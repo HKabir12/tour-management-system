@@ -1,5 +1,5 @@
 import "./globals.css";
-
+import { Toaster } from "react-hot-toast";
 import { ThemeProvider } from "next-themes";
 
 import NextAuthSessionProvider from "@/Providers/authProvider/NextAuthSessionProvider";
@@ -24,16 +24,20 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <NextAuthSessionProvider>
-      <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <NavbarFooterWrapper>{children}</NavbarFooterWrapper>
-        </ThemeProvider>
-      </body>
+        <body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <NavbarFooterWrapper>
+              <Toaster position="top-right" reverseOrder={false} />
+
+              {children}
+            </NavbarFooterWrapper>
+          </ThemeProvider>
+        </body>
       </NextAuthSessionProvider>
     </html>
   );
