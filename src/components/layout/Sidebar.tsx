@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 
 import {
@@ -26,19 +27,9 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { LogOut } from "lucide-react";
 
-import {
-  LayoutDashboard,
-  Users,
-  BarChart3,
-  Home,
-  Megaphone,
-  ClipboardCheck,
-  Settings,
-  User,
-  LogOut,
-} from "lucide-react";
-import { usePathname } from "next/navigation";
+import { adminLinks, moderatorLinks, userLinks, SidebarLink } from "@/components/constants/sidebarLinks";
 
 interface DashboardSidebarProps {
   role: "admin" | "moderator" | "user";
@@ -46,55 +37,35 @@ interface DashboardSidebarProps {
   userImage?: string;
 }
 
-const adminLinks = [
-  { label: "Dashboard", href: "/dashboard/admin", icon: LayoutDashboard },
-  { label: "Add Tour", href: "/dashboard/admin/add/tours", icon: Users },
-  { label: "Users Management", href: "/dashboard/admin/users", icon: Users },
-  { label: "Analytics", href: "/dashboard/admin/analytics", icon: BarChart3 },
-];
-
-const moderatorLinks = [
-  { label: "Dashboard", href: "/dashboard/moderator", icon: Home },
-  { label: "Bookings", href: "/dashboard/moderator/bookings", icon: Megaphone },
-];
-
-const userLinks = [
-  { label: "Dashboard", href: "/dashboard/user", icon: LayoutDashboard },
-  { label: "My Bookings", href: "/dashboard/user/my-bookings", icon: Home },
-  {
-    label: "Communication",
-    href: "/dashboard/user/chat",
-    icon: ClipboardCheck,
-  },
-  { label: "Wishlist", href: "/dashboard/user/wishlist", icon: BarChart3 },
-  { label: "Profile", href: "/dashboard/user/profile", icon: User },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
-];
-
 const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   role,
   userName,
   userImage,
 }) => {
   const pathname = usePathname();
-  const links =
-    role === "admin"
-      ? [...adminLinks, ...moderatorLinks, ...userLinks]
-      : role === "moderator"
-      ? moderatorLinks
-      : userLinks;
 
+  // ✅ Role-based links
+  let links: SidebarLink[] = [];
+  if (role === "admin") links = adminLinks;
+  else if (role === "moderator") links = moderatorLinks;
+  else links = userLinks;
+
+  // ✅ Check exact match for active link
+  const isActive = (href: string) => pathname === href;
+
+  // ✅ Logout
   const handleLogout = () => signOut({ callbackUrl: "/" });
-  const isActive = (href: string) => pathname.startsWith(href);
+
   return (
     <Sidebar collapsible="icon">
+      {/* HEADER */}
       <SidebarHeader className="py-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href="/">
-                <Image src="/icon.png" alt="logo" width={40} height={20} />
-                <span>TMS</span>
+              <Link href="/" className="flex items-center gap-2">
+                <Image src="/icon.png" alt="logo" width={36} height={36} />
+                <span className="font-semibold text-lg">TMS</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -103,35 +74,44 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
       <SidebarSeparator />
 
+      {/* MAIN CONTENT */}
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {links.map((link) => (
-                <SidebarMenuItem
-                  key={`${link.label}-${link.href}`}
-                  className={
-                    isActive(link.href)
-                      ? "bg-blue-100 dark:bg-blue-900 rounded-lg"
-                      : ""
-                  }
-                >
-                  <SidebarMenuButton asChild>
-                    <Link href={link.href}>
-                      <link.icon />
-                      <span>{link.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {links.map((link) => {
+                const Icon = link.icon;
+                return (
+                  <SidebarMenuItem
+                    key={link.href}
+                    className={
+                      isActive(link.href)
+                        ? "bg-blue-100 dark:bg-blue-900 rounded-lg"
+                        : ""
+                    }
+                  >
+                    <SidebarMenuButton asChild>
+                      <Link
+                        href={link.href}
+                        className="flex items-center gap-3 py-2"
+                      >
+                        <Icon size={18} />
+                        <span>{link.label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+
+              {/* Logout */}
               <SidebarMenuItem
                 onClick={handleLogout}
-                className="text-red-600 hover:bg-red-100"
+                className="text-red-600 hover:bg-red-100 rounded-lg mt-2"
               >
                 <SidebarMenuButton asChild>
                   <Link href="#">
-                    <LogOut />
+                    <LogOut size={18} />
                     Logout
                   </Link>
                 </SidebarMenuButton>
@@ -141,6 +121,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </SidebarGroup>
       </SidebarContent>
 
+      {/* FOOTER */}
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -154,8 +135,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>Account</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/user/profile">Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/user/settings">Settings</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   Sign out
                 </DropdownMenuItem>

@@ -24,33 +24,35 @@ const ProfilePage: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
 
-  useEffect(() => {
-    if (!session?.user?.email) return;
+ useEffect(() => {
+  if (session === undefined) return; // wait for session load
+  if (!session?.user?.email) return;
 
-    const fetchUser = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/users?email=${session.user.email}`);
-        if (!res.ok) throw new Error("Failed to fetch user");
-        const data: User = await res.json();
-        setUser(data);
-        setName(data.name);
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to load profile");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchUser = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/user?email=${session.user.email}`);
+      if (!res.ok) throw new Error("Failed to fetch user");
+      const data: User = await res.json();
+      setUser(data);
+      setName(data.name);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchUser();
-  }, [session?.user?.email]);
+  fetchUser();
+}, [session]);
+
 
   const handleUpdate = async () => {
     if (!user) return;
 
     try {
-      const res = await fetch(`/api/users/${user._id}`, {
+      const res = await fetch(`/api/user/${user._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -81,7 +83,7 @@ const ProfilePage: React.FC = () => {
     return <p className="text-gray-500 text-center mt-10">User not found.</p>;
 
   return (
-    <div className="max-w-4xl mx-auto mt-10  rounded-xl shadow-lg p-6 text-center">
+    <div className="max-w-4xl mx-auto mt-10  rounded-xl  p-6 text-center">
       {/* Avatar */}
       <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-200 dark:border-gray-700">
         <Image

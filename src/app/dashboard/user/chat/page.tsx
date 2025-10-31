@@ -6,26 +6,40 @@ import ChatSystem from "./components/ChatSystem";
 import paidBooking, { Booking } from "@/components/payedBooking/paidBooking";
 
 const ChatPage: React.FC = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
 
- useEffect(() => {
-  const email = session?.user?.email;
-  if (!email) return; // ✅ stops if null or undefined
+  useEffect(() => {
+    if (status !== "authenticated") return;
 
-  const fetchBookings = async () => {
-    const result = await paidBooking(email); // email is now string | undefined
-    setBookings(result);
-  };
+    const fetchBookings = async () => {
+      const email = session?.user?.email ?? ""; // ✅ handle null safely
+      if (!email) return;
 
-  fetchBookings();
-}, [session]);
+      const result = await paidBooking(email);
+      setBookings(result);
+      setLoading(false);
+    };
 
+    fetchBookings();
+  }, [session, status]);
+
+  if (loading)
+    return (
+      <div className="p-4 text-center text-gray-500">
+        Loading chat groups...
+      </div>
+    );
 
   return (
     <div className="min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Tour Chat Groups</h1>
-      <ChatSystem result={bookings} />
+      {bookings.length ? (
+        <ChatSystem result={bookings} />
+      ) : (
+        <p className="text-gray-500">No paid tours found 💡</p>
+      )}
     </div>
   );
 };

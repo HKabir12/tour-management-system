@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { XCircle, CheckCircle, Loader2, Trash2, Edit } from "lucide-react";
+import { Loader } from "@/components/utilities/Loader";
 
 // --- Custom Modal Component ---
 const CustomModal = ({ isOpen, onClose, title, text, success, onConfirm, isConfirmation, isProcessing }) => {
@@ -13,8 +14,8 @@ const CustomModal = ({ isOpen, onClose, title, text, success, onConfirm, isConfi
   const cancelButtonColor = isConfirmation ? "bg-gray-400 hover:bg-gray-500" : "bg-blue-600 hover:bg-blue-700";
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
-      <div className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-sm text-center transform transition-transform duration-300 scale-100">
+    <div className="fixed inset-0  bg-opacity-60 flex items-center justify-center p-4 z-50 transition-opacity duration-300">
+      <div className=" p-8 rounded-xl shadow-2xl w-full max-w-sm text-center transform transition-transform duration-300 scale-100">
         <div className="flex justify-center mb-4">
           <Icon size={48} className={iconColor} />
         </div>
@@ -74,7 +75,7 @@ const TourPackagesPage = () => {
   const fetchPackages = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/tour-packages");
+      const res = await fetch("/api/tours");
       const data = await res.json();
       setPackages(data);
     } catch (error) {
@@ -109,7 +110,7 @@ const TourPackagesPage = () => {
     setIsDeleting(true);
 
     try {
-      const res = await fetch(`/api/tour-packages/${idToDelete}`, { method: "DELETE" });
+      const res = await fetch(`/api/tours/${idToDelete}`, { method: "DELETE" });
       if (res.ok) {
         setPackages(packages.filter((pkg) => pkg._id !== idToDelete));
         setNotificationState({
@@ -145,7 +146,7 @@ const TourPackagesPage = () => {
     fetchPackages();
   }, []);
 
-  if (loading) return <p className="text-center mt-10 text-xl text-gray-600 dark:text-gray-400">Loading Tour Packages...</p>;
+  if (loading) return <Loader></Loader>;
 
   return (
     <div className="max-w-6xl mx-auto mt-6 p-4 sm:p-6 bg-base-300 dark:bg-gray-900 shadow-xl rounded-2xl min-h-[500px]">
@@ -178,7 +179,7 @@ const TourPackagesPage = () => {
               {packages.map((pkg) => (
                 <tr key={pkg._id} className="hover:bg-gray-50 hover:text-black dark:hover:bg-gray-700/50 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap font-medium dark:text-gray-100">{pkg.title}</td>
-                  <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300 font-mono">${pkg.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300 font-mono">${pkg.costForm}</td>
                   <td className="px-6 py-4 whitespace-nowrap dark:text-gray-300">{pkg.duration}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-center flex justify-center gap-3">
                     <a

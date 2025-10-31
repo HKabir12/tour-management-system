@@ -60,13 +60,13 @@ export default function TravelBuddyPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-12">
+    <div className="max-w-6xl mx-auto p-6 space-y-12">
       <h1 className="text-3xl font-bold text-center mb-6">
         🧭 Travel Buddy Dashboard
       </h1>
 
       {/* ✅ CREATE POST SECTION */}
-      <section className="bg-white shadow-lg p-6 rounded-2xl">
+      <section className=" shadow-lg p-6 rounded-2xl">
         <h2 className="text-xl font-semibold mb-4">
           ✈️ Create a Travel Buddy Post
         </h2>
@@ -124,7 +124,7 @@ export default function TravelBuddyPage() {
           />
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600  px-4 py-2 rounded-lg hover:bg-blue-700"
           >
             Create Post
           </button>
@@ -132,7 +132,7 @@ export default function TravelBuddyPage() {
       </section>
 
       {/* 🔍 FIND BUDDY SECTION */}
-      <section className="bg-white shadow-lg p-6 rounded-2xl">
+      <section className=" shadow-lg p-6 rounded-2xl">
         <h2 className="text-xl font-semibold mb-4">🔍 Find a Travel Buddy</h2>
         <form onSubmit={handleFind} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

@@ -11,21 +11,26 @@ export interface Booking {
 const paidBooking = async (email?: string): Promise<Booking[]> => {
   if (!email) return [];
 
-  const bookingsCollection = await dbConnect("bookings");
-  const tourCollection = await dbConnect("tours");
+  // ✅ connect to DB collections
+  const dbBookings = await dbConnect("bookings");
+  const dbTours = await dbConnect("tours");
 
-  const bookings = await bookingsCollection
+  // ✅ find paid bookings for that user
+  const userBookings = await dbBookings
     .find({ userEmail: email, paymentStatus: "paid" })
     .toArray();
 
-  const result: Booking[] = [];
+  if (!userBookings.length) return [];
 
-  for (const booking of bookings) {
-    const tour = await tourCollection.findOne({ _id: new ObjectId(booking.tourId) });
+  // ✅ fetch related tours
+  const result: Booking[] = [];
+  for (const booking of userBookings) {
+    const tour = await dbTours.findOne({ _id: new ObjectId(booking.tourId) });
+
     result.push({
       id: booking._id.toString(),
-      tourName: booking.tourName,
-      image: tour?.images?.[0] || "",
+      tourName: tour?.title || booking.tourName || "Unknown Tour",
+      image: tour?.images?.[0] || "/default.jpg",
     });
   }
 

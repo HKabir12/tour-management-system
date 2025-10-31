@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { signIn } from "next-auth/react";
 
 const SocialLogin = () => {
@@ -8,20 +9,24 @@ const SocialLogin = () => {
   };
 
   return (
-    <div className="flex flex-col gap-3 mt-5">
-      <button
+    <div >
+      {/* Google */}
+      <Button
         onClick={() => handleSocialLogin("google")}
-        className="btn bg-white text-black border border-gray-300 rounded-xl"
+        className="btn  border-[#e5e5e5] w-full my-5 rounded-xl"
       >
+       
         Login with Google
-      </button>
+      </Button>
 
-      <button
+      {/* GitHub */}
+      <Button
         onClick={() => handleSocialLogin("github")}
-        className="btn bg-black text-white rounded-xl"
+        className="btn  border-black w-full rounded-xl"
       >
+        
         Login with GitHub
-      </button>
+      </Button>
     </div>
   );
 };
